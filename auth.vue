@@ -4,9 +4,59 @@
   </div>
 </template>
 <script>
-const code = new URL(window.location.href).searchParams.get('code')
-const type = new URL(window.location.href).searchParams.get('type')
+export default {
+  mounted() {
+    const code = new URL(window.location.href).searchParams.get('code')
+    const type = new URL(window.location.href).searchParams.get('type')
 
+    const self = this;
+
+    if (opener) {
+      console.log("opener is valid!!!");
+      // opener에 g_winPopup 변수로 this를 넣어줌에 따라 WinPop.vue에서 이 소스의 객체를 직접 접근할 수 있게 된다
+      // WinPop.vue에서 g_winPopup 변수 활용을 확인할것
+      opener.g_winPopup = this;
+    }
+
+    setTimeout(() => {
+      this.sendMsgToParent()
+    },1000)
+
+  },
+  methods : {
+    sendMsgToParent(){
+      this.sendToOpener(
+        {
+          evt: 'message' ,
+          message : 'hello'
+        });
+    },
+
+    // 부모로 이벤트 보내기
+    sendToOpener(sendObj){
+
+      if(opener == null) {
+        return
+      }
+
+      let sendStr = JSON.stringify(sendObj)
+
+      // 부모 창에 Message를 보냄
+      window.opener.postMessage(sendStr, '*');
+    },
+
+    // 부모로 부터 이벤트 받기
+    // 이 함수는 WinPop.vue 의 calledFromOpener를 통해서 받게 된다
+    calledFromOpener( evt ){
+      console.log( "receiveFromOpener  ------" );
+      this.message = evt.msg;
+    },
+
+  }
+}
+
+
+/*
 const social = window.localStorage.getItem('socialType')
 console.log(social)
 
@@ -56,11 +106,6 @@ function secureRandom(num) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength))
   }
   return result
-}
+} */
 
-export default {
-  setup () {
-
-  }
-}
 </script>
