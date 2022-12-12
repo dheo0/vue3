@@ -126,6 +126,8 @@
             <button
               type="button"
               @click="callRestApiNaver"
+              @onClose="val=>evtCloseWinPopup(val)"
+              @onRecvEvtFromWinPop="val=>onRecvWinPop(val)"
             >
               <img
                 src="@assets/images/share/social-login-naver.png"
@@ -186,7 +188,8 @@ export default {
       emailInputErrorFlag: false,
       passwdTxt: '',
       passwordInputType: 'password',
-      isLogin: isLogin()
+      isLogin: isLogin(),
+      windowRef : null,
     }
   },
   beforeMount() {
@@ -197,6 +200,19 @@ export default {
       description: 'description',
       image: 'http://localhost:5000/testImage.jpg'
     })
+  },
+  computed: {
+    popup () {
+      return this.$store.state.windowPopup
+    }
+  },
+  watch: {
+    popup (newValue) {
+      console.log(newValue, 'newValue')
+      if (!newValue) {
+        this.$changePage('signUp', 'SignUp')
+      }
+    }
   },
   methods: {
     async loginProcess () {
@@ -212,6 +228,9 @@ export default {
         console.log(error.message)
       }
     },
+    parentMed() {
+      this.$changePage('signUp', 'SignUp')
+    },
     callRestApiKakao () {
       const clientID = '62d97060fcb9a144f60815ab0dd8cdfc'
       const redirectURI = encodeURI(window.location.origin + '/auth')
@@ -221,14 +240,75 @@ export default {
       window.open(uri, 'kakao', 'width=700;height=800')
     },
     callRestApiNaver () {
+
       const clientID = 'HTJCHt1f6afmdaYys69x'
       const redirectURI = encodeURI(window.location.origin + '/auth')
       const state = this.secureRandom(15)
       const uri = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${clientID}&redirect_uri=${redirectURI}&state=${state}`
       window.localStorage.setItem('socialType', 'naver')
-      window.open(uri, 'naver', 'width=700;height=800')
+
+
+      if( this.windowRef != null ){
+        this.closeWinPop();
+      }
+      this.windowRef = window.open(uri, 'naver', 'width=700;height=800')
+      if( this.windowRef != null ) {
+        this.windowRef.addEventListener('beforeunload', this.evtClose);
+      }else{
+        alert( "window.open fail!!!" );
+      }
+
+      // 2.  새로 띄운 윈도우 팝업창으로 부터 수신 메세지 이벤트 처리
+      window.addEventListener("message", this.recvEvtFromChild, false);
+
+
+
       // window.location.href = uri
     },
+    // 윈도우 팝업 닫기
+    closeWinPop(){
+
+      if(this.windowRef) {
+        this.windowRef.close();
+        this.windowRef = null;
+      }
+    },
+
+    evtClose() {
+      if(this.windowRef) {
+        this.windowRef.close()
+        this.windowRef = null
+        this.$emit('onClose')
+      }
+    },
+    sendEvtToChild( evt ){
+      if(!common.isValidObj(this.windowRef)) {
+        return
+      }
+      if(g_winPopup == null) {
+        return
+      }
+
+      // 4. 윈도팝업창(g_winPopup)에 함수 실행
+      //  g_winPopup 변수는 본 소스에서 선언하지 않고 아래 ChildWinPop.vue 소스인 윈도우 팝업창 측에서 선언하고 설정함
+      g_winPopup.calledFromOpener(evt)
+    },
+
+
+    recvEvtFromChild( evt ){ // 5. 팝업창으로 부터 수신된 이벤트
+      console.log("recvEvtFromChild......")
+      console.log( evt.data );
+      this.$changePage('signUp', 'SignUp')
+
+      if(evt.data == null){
+        return;
+      }
+      let recvObj = JSON.parse( evt.data );
+
+      // 5. 본 소스 WinPop.vue를 콤포넌트로 사용하는 부모 vue 측에 이벤트 전달
+      this.$emit('onRecvEvtFromWinPop', recvObj )
+    },
+
     callRestApi () { // 페이스북
       const clientID = '1508578636287219'
       const redirectURI = window.location.origin + '/auth'
