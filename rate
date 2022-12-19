@@ -1,0 +1,10 @@
+  <!-- 환율 계산기 시작 -->
+  <comp-side-content-modal
+    v-if="showCalculator"
+    @closeModal="handleCalculatorClick"
+    @update:rate="getRate"
+  />
+  
+   getRate(val) {
+      console.log(val)
+    },
