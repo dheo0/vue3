@@ -1,0 +1,105 @@
+<template>
+  <Teleport to="#lp_layout">
+    <div class="side-content-modal">
+      <div class="lp_wrap2 type-calculator">
+        <div class="lp_head">
+          <h3>{{ $t('ML00187') }}</h3>
+        </div>
+        <div class="lp_body">
+          <div class="layout">
+            <ul class="form-list">
+              <li class="form-box">
+                <input
+                  v-model="rateValue"
+                  type="text"
+                  :placeholder="$t('ML00188')"
+                >
+              </li>
+              <li class="form-box">
+                <div
+                  class="multiForm type-from-to"
+                  style="background-position: center 15px;"
+                >
+                  <div class="multi-item row1">
+                    <comp-select
+                      id="currency-unit-1"
+                      :option-list="currencyUnitOptions"
+                    />
+                  </div>
+                  <div class="multi-item row2">
+                    <comp-select
+                      id="currency-unit-2"
+                      :option-list="currencyUnitOptions"
+                    />
+                  </div>
+                </div>
+              </li>
+              <li>
+                <div class="txt_wrap type-description2">
+                  <p>
+                    <strong>418,000 <em>KRW</em></strong>
+                  </p>
+                </div>
+                <p class="type-error">
+                  {{ $t('ML00189') }}
+                </p>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="lp_foot">
+          <div class="layout">
+            <div class="grid-row bs-7 btn_wrap type-48">
+              <div class="row3">
+                <button
+                  class="type1"
+                  type="button"
+                  @click="handleRate"
+                >
+                  {{ $t('ML00190') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <a
+          class="lp2_close"
+          href="javascript:;"
+          @click="handleCalculatorClick"
+        >닫기</a>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
+<script>
+import CompSelect from '@comp/common/Input/Select'
+export default {
+  components: {
+    CompSelect
+  },
+  props: {
+    modelValue: {
+      type: [String, Number],
+      default: 0
+    }
+  },
+  emits:['closeModal', 'update:rate'],
+  data() {
+    return {
+      rateValue: this.modelValue,
+      currencyUnitOptions: [{ id: 'default', title: '-선택-' }, { id: 1, title: 'USD' }, { id: 2, title: 'EUR' }],
+      incomeUnitOptions: [{ id: 'default', title: '-선택-' }, { id: 1, title: '0%', value: 0 }, { id: 2, title: '5%', value: 5 }]
+    }
+  },
+  methods: {
+    handleCalculatorClick () {
+      this.$emit('closeModal')
+    },
+    handleRate () {
+      this.$emit('update:rate', this.rateValue)
+      this.handleCalculatorClick ()
+    }
+  }
+}
+</script>
