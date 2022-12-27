@@ -10,18 +10,12 @@ const state = {
   slideOptions: {},
   isLayerOpen: false,
   sideIsOpen: false,
-  recentItems: []
+  imgFiles: []
 }
-const getters = {
-  recentList: state => state.recentItems
-}
+const getters = {}
 const mutations = {
-  SET_ITEMS (state, payload) {
-    if (state.recentItems.length > 3) {
-      state.recentItems.pop()
-    }
-    const isSame = state.recentItems.some((item) => item.id === payload.id)
-    if (!isSame) state.recentItems.push(payload)
+  ADD_UPLOAD_ITEMS (state, payload) {
+    state.imgFiles = payload
   },
   // 사이드패널 열릴때 또는 사이드패널 안에서 페이지 이동시 페이지 히스토리 저정
   ADD_HISTORY (state, payload) {
