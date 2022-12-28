@@ -8,6 +8,7 @@
       <label for="addFile">{{ $t('ML00076') }} <span>{{ $t('ML00077', {n: maxCount}) }}</span></label>
       <input
         id="addFile"
+        ref="addFile"
         type="file"
         name="img"
         multiple
@@ -194,7 +195,37 @@ export default {
       this.selectedImage = value // 대표이미지
     }
   },
+  async mounted() {
+    const img = ['http://localhost:5000/img/@product-list-img.adfcc67b.jpg', 'http://localhost:5000/img/@product-list-img-vertical.556ac135.jpg']
+
+    for (var i=0; i < img.length; i++) {
+      const abc = await this.convertURLtoFile(img[i])
+      console.log('abc', abc)
+
+      const reader = new FileReader()
+      reader.onload = () => {
+        this.uploadImages = [...this.uploadImages, reader.result]
+      }
+      reader.readAsDataURL(abc)
+    }
+  },
   methods: {
+
+    async convertURLtoFile (url) {
+      console.log(url)
+      const response = await fetch(url);
+      const data = await response.blob();
+      const fileName = url.substring(url.lastIndexOf('/')+1, url.length)
+      const ext = fileName.substring(0, fileName.lastIndexOf('.')) // url 구조에 맞게 수정할 것
+      const filename = url.split("/").pop(); // url 구조에 맞게 수정할 것
+      const metadata = { type: `image/${ext}` };
+      return new File([data], filename, metadata);
+    },
+    blobToFile(theBlob, fileName){
+      theBlob.lastModifiedDate = new Date();
+      theBlob.name = fileName;
+      return theBlob;
+    },
     handleFileUpload(e) {
       const files = e.target.files
       console.log('files', files)
@@ -216,7 +247,8 @@ export default {
           const reader = new FileReader()
           reader.onload = () => {
             this.uploadImages = [...this.uploadImages, reader.result] // 썸네일 용도
-            this.saveImages = [...this.saveImages, imageFile] // 업로드 용도
+            console.log(reader.result)
+            this.saveImages = [...this.saveImages, reader.result] // 업로드 용도
             this.$store.commit('ADD_UPLOAD_ITEMS', this.saveImages)
             // blob 파일로 저장
             const blob = this.dataURItoBlob(this.uploadImages[i])
